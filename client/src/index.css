@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* index.css */
+
+* {
+	scrollbar-width: none;
+	object-fit: "contain";
+}
+
+@supports (-webkit-touch-callout: none) {
+	.ios-text-nowrap {
+		white-space: nowrap;
+	}
+}
+.container {
+	@apply max-w-7xl py-2 px-1 
+			 lg:px-4 lg:py-1 
+			 xl:px-4 xl:py-1 
+			 2xl:max-w-[1920px] 2xl:px-4 2xl:py-1;
+}
+
+.navbarBtn {
+	@apply flex items-center space-x-1 text-gray-700 hover:text-gray-900 text-xl;
+}
+
+.verticalDivider {
+	@apply border-t border-black my-4;
+}
+.navBarText {
+	@apply text-[30.4px];
+}
+
+.navbarBtnEnd {
+	@apply w-full px-2 py-2  text-indigo-600;
+}
+
+.dropdownText {
+	@apply block px-4 py-2 text-xl text-gray-700 hover:bg-gray-50 hover:text-indigo-600;
+}
+.navbarBtnEndWithGradient {
+	@apply text-lg font-extrabold text-white rounded-md hover:opacity-90 transition-opacity duration-200 bg-teal-400;
+}
+
+.navbarBtnEndWithGradient:hover {
+	@apply text-lg font-extrabold text-white rounded-md hover:opacity-90 transition-opacity duration-200;
+	background: linear-gradient(
+		90deg,
+		rgba(5, 247, 148, 1) 0%,
+		rgba(17, 139, 214, 1) 100%
+	);
+}
+
+.navbarBtnIndigo {
+	@apply text-lg text-teal-500 hover:text-gray-900  border border-teal-500 hover:border-teal-600 hover:bg-gray-200 rounded-md transition-colors duration-200;
+}
+
+.searchBar {
+	@apply w-64 px-4 py-2 rounded-xl border border-black focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-xl;
+}
+
+.text-custom-gradient {
+	background: linear-gradient(
+		90deg,
+		rgba(5, 247, 148, 1) 0%,
+		rgba(17, 139, 214, 1) 100%
+	);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.color-custom-gradient {
+	background: linear-gradient(
+		90deg,
+		rgba(5, 247, 148, 1) 0%,
+		rgba(17, 139, 214, 1) 100%
+	);
+}
+
+.progress-bar-color {
+	background: linear-gradient(to right, #ffa500, #ff4500, #ff4d4d);
+}

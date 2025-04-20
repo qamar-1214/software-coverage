@@ -1,0 +1,117 @@
+# -------------------------------
+# 🔐 Environment & Secrets
+# -------------------------------
+.env
+.env.*
+.env.*.local
+*.env.local
+
+# -------------------------------
+# 🧱 Dependencies
+# -------------------------------
+**/node_modules/
+**/bower_components/
+**/jspm_packages/
+**/web_modules/
+
+# -------------------------------
+# ⚙️ Build Output
+# -------------------------------
+**/build/
+**/dist/
+**/.next/
+**/.nuxt/
+**/out/
+**/.output
+
+# -------------------------------
+# 🧪 Coverage & Test
+# -------------------------------
+**/coverage/
+.nyc_output
+lib-cov
+*.lcov
+
+# -------------------------------
+# 📦 Package Management
+# -------------------------------
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+.yarn/cache
+.yarn/unplugged
+.yarn/install-state.gz
+.yarn/build-state.yml
+.yarn-integrity
+.pnp.*
+.npm
+
+# -------------------------------
+# 🐞 Logs & Reports
+# -------------------------------
+*.log
+*.debug.log
+npm-debug.log*
+yarn-debug.log*
+lerna-debug.log*
+logs/
+libpeerconnection.log
+report.*.json
+
+# -------------------------------
+# 🔁 Runtime & Temp
+# -------------------------------
+**/.cache/
+.cache-loader/
+temp/
+tmp/
+*.tmp
+*.bak
+*~
+.pids
+*.pid
+*.seed
+*.pid.lock
+.lock-wscript
+connect.lock
+.history/
+.parcel-cache
+.rpt2_cache/
+.rts2_cache_*/
+
+# -------------------------------
+# 💅 Linters, Tools, Misc
+# -------------------------------
+.eslintcache
+.stylelintcache
+.vscode/
+.idea/
+*.sublime*
+
+# -------------------------------
+# 💻 REPL, Shell, IDEs
+# -------------------------------
+.node_repl_history
+.tern-port
+.vscode-test
+
+# -------------------------------
+# 🧪 Optional Additions
+# -------------------------------
+*.tgz
+.DS_Store
+Thumbs.db
+
+# -------------------------------
+# 🔧 Custom for Software Coverage
+# -------------------------------
+
+# Ignore local uploads if any (can be adjusted)
+**/uploads/
+**/public/static/
+
+# Ignore build artifacts from client/server separately
+client/.next/
+client/.cache/
+client/build/
+server/debug.log
