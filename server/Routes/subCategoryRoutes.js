@@ -12,6 +12,7 @@ import {
   getAllSubCategoriesAdmin,
   getSubCategoryBySlug,
 } from "../Controllers/subCategoryController.js";
+import { createUploadMiddleware } from "../Middlewares/multer.js";
 
 const subCategoryRouter = express.Router();
 
@@ -34,7 +35,11 @@ subCategoryRouter.get(
   getAllSubCategoriesWithDescription
 );
 
-subCategoryRouter.post("/add-subcategory", addSubCategory);
+subCategoryRouter.post(
+  "/add-subcategory",
+  createUploadMiddleware("imageUrl"),
+  addSubCategory
+);
 
 subCategoryRouter.get("/get-popular-subcategories", getTopSubCategories);
 
@@ -44,7 +49,12 @@ subCategoryRouter.delete(
   "/delete-subcategory/:subCategoryId",
   deleteSubCategory
 );
-subCategoryRouter.put("/update-subcategory/:subCategoryId", updateSubCategory);
+subCategoryRouter.put(
+  "/update-subcategory/:subCategoryId",
+  createUploadMiddleware("imageUrl"),
+
+  updateSubCategory
+);
 
 subCategoryRouter.get("/get-sub-category-admin", getAllSubCategoriesAdmin);
 

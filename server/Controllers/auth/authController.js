@@ -3,7 +3,10 @@ import User from "../../Models/auth/auth.model.js";
 import fs from "fs/promises";
 import path from "path";
 import bcryptjs from "bcryptjs";
+import cloudinary from "cloudinary";
+import { v4 as uuidv4 } from "uuid";
 import admin from "../../Config/firebaseAdmin.js";
+import { Readable } from "stream";
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
@@ -266,7 +269,18 @@ const updateProfile = async (req, res) => {
   let updateData = req.body;
 
   try {
-    const user = await User.findById(userId);
+    // Find user
+
+    const user = await User.findById(userId).lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Check email verification
     if (!user.isEmailVerified) {
       return res.status(403).json({
         success: false,
@@ -274,11 +288,13 @@ const updateProfile = async (req, res) => {
       });
     }
 
+    // Check for duplicate email
     if (updateData.email) {
       const existingUser = await User.findOne({
         email: updateData.email,
         _id: { $ne: userId },
-      });
+      }).lean();
+
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -287,21 +303,67 @@ const updateProfile = async (req, res) => {
       }
     }
 
+    // Handle profile image upload to Cloudinary
     if (req.file) {
-      const avatarFilePath = req.file.path;
-      updateData.profileImage = avatarFilePath;
+      // Upload to Cloudinary using buffer
 
-      if (user.profileImage && user.profileImage.startsWith("Uploads/")) {
-        const oldAvatarPath = path.join(__dirname, "..", user.profileImage);
+      const [cloudinaryResponse] = await Promise.all([
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.v2.uploader.upload_stream(
+            {
+              folder: "user_profiles",
+              public_id: `user_${userId}_${uuidv4()}_${Date.now()}`,
+              transformation: [{ quality: "auto", fetch_format: "auto" }],
+            },
+            (error, result) => {
+              if (error) {
+                console.error("Cloudinary upload error:", error);
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
+          stream.end(req.file.buffer); // Upload buffer directly
+        }),
+        user.profileImage?.public_id
+          ? cloudinary.v2.uploader
+              .destroy(user.profileImage.public_id)
+              .catch((err) => {
+                console.warn("Failed to delete old image:", err.message);
+                return null;
+              })
+          : Promise.resolve(null),
+      ]);
+      console.timeEnd("cloudinaryOperations");
+
+      updateData.profileImage = {
+        public_id: cloudinaryResponse.public_id,
+        url: cloudinaryResponse.secure_url,
+      };
+    } else if (
+      updateData.profileImage === "null" ||
+      updateData.profileImage === null
+    ) {
+      if (user.profileImage?.public_id) {
         try {
-          await fs.unlink(oldAvatarPath);
-          console.log("Old avatar deleted:", oldAvatarPath);
-        } catch (err) {
-          console.warn("Failed to delete old avatar:", err.message);
+          await cloudinary.v2.uploader.destroy(user.profileImage.public_id);
+          console.log(
+            "Old profile image deleted from Cloudinary:",
+            user.profileImage.public_id
+          );
+        } catch (cloudinaryError) {
+          console.warn(
+            "Failed to delete old Cloudinary image:",
+            cloudinaryError.message
+          );
         }
       }
+
+      updateData.profileImage = null;
     }
 
+    // Handle password update
     if (updateData.password) {
       if (updateData.password.length < 6) {
         return res.status(400).json({
@@ -309,10 +371,12 @@ const updateProfile = async (req, res) => {
           message: "Password must be at least 6 characters.",
         });
       }
+
       const salt = await bcryptjs.genSalt(10);
       updateData.password = await bcryptjs.hash(updateData.password, salt);
     }
 
+    // Check if there's data to update
     if (Object.keys(updateData).length === 0 && !req.file) {
       return res.status(400).json({
         success: false,
@@ -320,18 +384,16 @@ const updateProfile = async (req, res) => {
       });
     }
 
+    // Update user
+    console.time("updateUser");
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true, runValidators: true }
-    );
+    ).lean();
+    console.timeEnd("updateUser");
 
-    if (!updatedUser) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found.",
-      });
-    }
+    console.timeEnd("updateProfile");
 
     res.status(200).json({
       success: true,
@@ -339,11 +401,7 @@ const updateProfile = async (req, res) => {
       data: {
         email: updatedUser.email,
         isAdmin: updatedUser.isAdmin,
-        profileImage: updatedUser.profileImage
-          ? updatedUser.profileImage.startsWith("http")
-            ? updatedUser.profileImage
-            : `http://localhost:5000/${updatedUser.profileImage}`
-          : null,
+        profileImage: updatedUser.profileImage?.url || null,
         displayName: updatedUser.displayName,
         isEmailVerified: updatedUser.isEmailVerified,
       },
@@ -357,6 +415,47 @@ const updateProfile = async (req, res) => {
   }
 };
 
+export default updateProfile;
+
+// const getUserData = async (req, res) => {
+//   try {
+//     const { userId } = req;
+
+//     const user = await User.findById(userId).select("-password");
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found.",
+//         error: true,
+//       });
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       message: "User data fetched successfully.",
+//       error: false,
+//       user: {
+//         email: user.email,
+//         isAdmin: user.isAdmin,
+//         profileImage: user.profileImage
+//           ? user.profileImage.startsWith("http")
+//             ? user.profileImage
+//             : `http://localhost:5000/${user.profileImage}`
+//           : null,
+//         displayName: user.displayName,
+//         termsAccepted: user.termsAccepted,
+//         isEmailVerified: user.isEmailVerified,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Get User Data Error:", error.message);
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Server error while fetching user data.",
+//       error: true,
+//     });
+//   }
+// };
 const getUserData = async (req, res) => {
   try {
     const { userId } = req;
@@ -377,11 +476,7 @@ const getUserData = async (req, res) => {
       user: {
         email: user.email,
         isAdmin: user.isAdmin,
-        profileImage: user.profileImage
-          ? user.profileImage.startsWith("http")
-            ? user.profileImage
-            : `http://localhost:5000/${user.profileImage}`
-          : null,
+        profileImage: user.profileImage?.url || null, // Use Cloudinary URL
         displayName: user.displayName,
         termsAccepted: user.termsAccepted,
         isEmailVerified: user.isEmailVerified,

@@ -8,10 +8,15 @@ import {
   updateSoftware,
   getAllSoftwaresAdmin,
 } from "../Controllers/softwareController.js";
+import { createUploadMiddleware } from "../Middlewares/multer.js";
 
 const softwareRouter = express.Router();
 
-softwareRouter.post("/add-software", addSoftware);
+softwareRouter.post(
+  "/add-software",
+  createUploadMiddleware("imageUrl"),
+  addSoftware
+);
 //to get top 6 softwares by category
 softwareRouter.get(
   "/:subcategoryId/get-top-software",
@@ -26,6 +31,10 @@ softwareRouter.get(
 softwareRouter.get("/get-all-softwares", getAllSoftware);
 softwareRouter.get("/get-all-softwares-admin", getAllSoftwaresAdmin);
 
-softwareRouter.put("/update-software/:id", updateSoftware);
+softwareRouter.put(
+  "/update-software/:id",
+  createUploadMiddleware("imageUrl"),
+  updateSoftware
+);
 softwareRouter.delete("/delete-software/:id", deleteSoftware);
 export default softwareRouter;

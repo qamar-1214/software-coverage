@@ -529,20 +529,413 @@
 
 // export default UpdateSubcategoryModal;
 
+// import React, { useEffect, useState } from "react";
+// import { X, Upload, Trash2, PlusCircle } from "lucide-react";
+// import { useForm, useFieldArray } from "react-hook-form";
+// import { fetchAllProducts } from "../../../api/software_api/softwareApi"; // Adjust path if necessary
 
+// const UpdateSubcategoryModal = ({
+//   isOpen = false,
+//   onClose = () => {},
+//   onSubmit = async (data) => console.log(data),
+//   initialData = {
+//     name: "",
+//     description: "",
+//     authors: [],
+//     category: {},
+//     softwares: [],
+//     IsPopCateg: false,
+//     imageUrl: { url: "" },
+//   },
+//   fetchCategories = async () => [],
+// }) => {
+//   const [categories, setCategories] = useState([]);
+//   const [softwares, setSoftwares] = useState([]);
+//   const [previewImage, setPreviewImage] = useState(null);
 
+//   const {
+//     register,
+//     handleSubmit,
+//     formState: { errors, isSubmitting },
+//     reset,
+//     setValue,
+//     control,
+//     watch,
+//   } = useForm({
+//     defaultValues: {
+//       name: initialData.name,
+//       description: initialData.description,
+//       authors: initialData.authors || [
+//         {
+//           name: "",
+//           role: "",
+//           workRole: "",
+//           socialLinks: [{ platform: "", url: "" }],
+//           title: "",
+//           paragraph: "",
+//           questionsAnswers: [{ question: "", answer: "" }],
+//         },
+//       ],
+//       categoryId: initialData.category?._id || "",
+//       softwareIds: initialData.softwares
+//         ? initialData.softwares.map((s) => s._id)
+//         : [],
+//       IsPopCateg: initialData.IsPopCateg,
+//       imageUrl: null,
+//     },
+//   });
 
+//   const { fields, append, remove } = useFieldArray({
+//     control,
+//     name: "authors",
+//   });
 
+//   useEffect(() => {
+//     if (isOpen) {
+//       reset({
+//         name: initialData.name,
+//         description: initialData.description,
+//         authors: initialData.authors || [
+//           {
+//             name: "",
+//             role: "",
+//             workRole: "",
+//             socialLinks: [{ platform: "", url: "" }],
+//             title: "",
+//             paragraph: "",
+//             questionsAnswers: [{ question: "", answer: "" }],
+//           },
+//         ],
+//         categoryId: initialData.category?._id || "",
+//         softwareIds: initialData.softwares
+//           ? initialData.softwares.map((s) => s._id)
+//           : [],
+//         IsPopCateg: initialData.IsPopCateg,
+//         imageUrl: null,
+//       });
 
+//       setPreviewImage(initialData.imageUrl?.url || null);
+//       loadCategories();
+//       loadSoftwares();
+//     }
+//   }, [initialData, isOpen, reset]);
 
+//   const loadCategories = async () => {
+//     try {
+//       const data = await fetchCategories();
+//       setCategories(data);
+//     } catch (error) {
+//       console.error("Error fetching categories:", error);
+//     }
+//   };
 
+//   const loadSoftwares = async () => {
+//     try {
+//       const data = await fetchAllProducts();
+//       setSoftwares(data.softwares || []);
+//     } catch (error) {
+//       console.error("Error fetching softwares:", error);
+//     }
+//   };
 
+//   const handleImageChange = (e) => {
+//     const file = e.target.files[0];
+//     if (file) {
+//       setValue("imageUrl", file);
+//       setPreviewImage(URL.createObjectURL(file));
+//     }
+//   };
 
+//   const onSubmitForm = async (data) => {
+//     console.log("this is sub cat:", data, "this is formdata:", formData);
+//     try {
+//       const formData = new FormData();
+//       formData.append("name", data.name.trim());
+//       formData.append("description", data.description.trim());
+//       formData.append("categoryId", data.categoryId);
+//       formData.append("softwareIds", JSON.stringify(data.softwareIds));
+//       formData.append("IsPopCateg", data.IsPopCateg);
 
+//       // Format authors correctly
+//       const authorsFormatted = data.authors.map((author) => ({
+//         name: author.name,
+//         role: author.role,
+//         workRole: author.workRole,
+//         title: author.title,
+//         paragraph: author.paragraph,
+//         socialLinks: author.socialLinks || [{ platform: "", url: "" }],
+//         questionsAnswers: author.questionsAnswers || [
+//           { question: "", answer: "" },
+//         ],
+//       }));
 
+//       formData.append("authors", JSON.stringify(authorsFormatted));
 
+//       if (data.imageUrl) {
+//         formData.append("imageUrl", data.imageUrl);
+//       }
 
+//       await onSubmit(formData);
+//       handleClose();
+//     } catch (error) {
+//       console.error("Error updating subcategory:", error);
+//     }
+//   };
 
+//   const handleClose = () => {
+//     reset();
+//     setPreviewImage(null);
+//     onClose();
+//   };
+
+//   if (!isOpen) return null;
+
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+//       <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4">
+//         <div className="flex items-center justify-between p-4 border-b">
+//           <h2 className="text-lg font-semibold">Update Subcategory</h2>
+//           <button onClick={handleClose} className="p-1">
+//             <X className="h-5 w-5 text-gray-500" />
+//           </button>
+//         </div>
+
+//         <form
+//           onSubmit={handleSubmit(onSubmitForm)}
+//           className="p-4 space-y-4 overflow-y-auto"
+//           style={{ maxHeight: "600px" }}
+//         >
+//           {/* Image Upload */}
+//           <div className="space-y-2">
+//             <label className="block text-sm font-medium">Image</label>
+//             <div className="flex items-center gap-4">
+//               {previewImage && (
+//                 <img
+//                   src={previewImage}
+//                   alt="Preview"
+//                   className="h-20 w-20 object-cover rounded-lg"
+//                 />
+//               )}
+//               <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 border rounded-lg cursor-pointer">
+//                 <Upload className="h-5 w-5" />
+//                 <span className="text-sm">Upload Image</span>
+//                 <input
+//                   type="file"
+//                   {...register("imageUrl")}
+//                   onChange={handleImageChange}
+//                   accept="image/*"
+//                   className="hidden"
+//                 />
+//               </label>
+//             </div>
+//           </div>
+
+//           {/* Name & Description */}
+//           <input
+//             {...register("name", { required: true })}
+//             placeholder="Name"
+//             className="w-full p-3 border rounded-lg"
+//           />
+//           <textarea
+//             {...register("description", { required: true })}
+//             placeholder="Description"
+//             className="w-full p-3 border rounded-lg"
+//           ></textarea>
+
+//           {/* Category Selection */}
+//           <label>Category:</label>
+//           <select
+//             {...register("categoryId")}
+//             className="w-full p-3 border rounded-lg"
+//           >
+//             <option value="">Select category</option>
+//             {categories.map((category) => (
+//               <option key={category._id} value={category._id}>
+//                 {category.name}
+//               </option>
+//             ))}
+//           </select>
+
+//           {/* Software Selection */}
+//           <label>Software:</label>
+//           <div
+//             className="border p-3 rounded-lg overflow-y-auto"
+//             style={{ maxHeight: "100px" }}
+//           >
+//             {softwares.map((software) => (
+//               <div key={software._id} className="flex items-center space-x-2">
+//                 <input
+//                   type="checkbox"
+//                   value={software._id}
+//                   {...register("softwareIds")}
+//                   className="form-checkbox"
+//                 />
+//                 <label>{software.name}</label>
+//               </div>
+//             ))}
+//           </div>
+
+//           {/* Authors Section */}
+//           <label className="block text-lg font-semibold">Authors</label>
+
+//           {fields.map((field, index) => (
+//             <div
+//               key={field.id}
+//               className="border p-4 rounded-lg bg-gray-100 mb-4"
+//             >
+//               {/* Author Profile Image Upload */}
+//               {/* <label className="block text-sm font-medium">Profile Image</label>
+//               <input
+//                 type="file"
+//                 {...register(`authors.${index}.profileImage`)}
+//                 className="w-full p-2 border rounded-lg"
+//               /> */}
+
+//               {/* Author Name */}
+//               <label className="block text-sm font-medium">Name</label>
+//               <input
+//                 {...register(`authors.${index}.name`)}
+//                 placeholder="Author Name"
+//                 className="w-full p-2 border rounded-lg mb-2"
+//               />
+
+//               {/* Author Role */}
+//               <label className="block text-sm font-medium">Role</label>
+//               <input
+//                 {...register(`authors.${index}.role`)}
+//                 placeholder="Role"
+//                 className="w-full p-2 border rounded-lg mb-2"
+//               />
+
+//               {/* Author Work Role */}
+//               <label className="block text-sm font-medium">Work Role</label>
+//               <input
+//                 {...register(`authors.${index}.workRole`)}
+//                 placeholder="Work Role"
+//                 className="w-full p-2 border rounded-lg mb-2"
+//               />
+
+//               {/* Author Title */}
+//               <label className="block text-sm font-medium">Title</label>
+//               <input
+//                 {...register(`authors.${index}.title`)}
+//                 placeholder="Title"
+//                 className="w-full p-2 border rounded-lg mb-2"
+//               />
+
+//               {/* Author Paragraph */}
+//               <label className="block text-sm font-medium">Paragraph</label>
+//               <textarea
+//                 {...register(`authors.${index}.paragraph`)}
+//                 placeholder="Write a paragraph about the author..."
+//                 className="w-full p-2 border rounded-lg mb-2"
+//                 rows="3"
+//               />
+
+//               {/* Social Links */}
+//               <label className="block text-sm font-medium">Social Links</label>
+//               <div className="grid grid-cols-2 gap-2">
+//                 <input
+//                   {...register(`authors.${index}.socialLinks.0.platform`)}
+//                   placeholder="Platform (e.g. Twitter)"
+//                   className="p-2 border rounded-lg"
+//                 />
+//                 <input
+//                   {...register(`authors.${index}.socialLinks.0.url`)}
+//                   placeholder="URL"
+//                   className="p-2 border rounded-lg"
+//                 />
+//               </div>
+
+//               <div className="grid grid-cols-2 gap-2 mt-2">
+//                 <input
+//                   {...register(`authors.${index}.socialLinks.1.platform`)}
+//                   placeholder="Platform (e.g. LinkedIn)"
+//                   className="p-2 border rounded-lg"
+//                 />
+//                 <input
+//                   {...register(`authors.${index}.socialLinks.1.url`)}
+//                   placeholder="URL"
+//                   className="p-2 border rounded-lg"
+//                 />
+//               </div>
+
+//               {/* Questions & Answers */}
+//               <label className="block text-sm font-medium mt-2">
+//                 Questions & Answers
+//               </label>
+//               <div className="grid grid-cols-2 gap-2">
+//                 <input
+//                   {...register(`authors.${index}.questionsAnswers.0.question`)}
+//                   placeholder="Question 1"
+//                   className="p-2 border rounded-lg"
+//                 />
+//                 <input
+//                   {...register(`authors.${index}.questionsAnswers.0.answer`)}
+//                   placeholder="Answer 1"
+//                   className="p-2 border rounded-lg"
+//                 />
+//               </div>
+
+//               <div className="grid grid-cols-2 gap-2 mt-2">
+//                 <input
+//                   {...register(`authors.${index}.questionsAnswers.1.question`)}
+//                   placeholder="Question 2"
+//                   className="p-2 border rounded-lg"
+//                 />
+//                 <input
+//                   {...register(`authors.${index}.questionsAnswers.1.answer`)}
+//                   placeholder="Answer 2"
+//                   className="p-2 border rounded-lg"
+//                 />
+//               </div>
+
+//               {/* Remove Author Button */}
+//               <button
+//                 type="button"
+//                 onClick={() => remove(index)}
+//                 className="w-full p-2 text-white bg-red-600 rounded-lg flex items-center justify-center gap-2 mt-3"
+//               >
+//                 <Trash2 className="h-5 w-5" />
+//                 Remove Author
+//               </button>
+//             </div>
+//           ))}
+
+//           {/* Add New Author Button */}
+//           <button
+//             type="button"
+//             onClick={() =>
+//               append({
+//                 name: "",
+//                 role: "",
+//                 workRole: "",
+//                 title: "",
+//                 paragraph: "",
+//                 socialLinks: [{ platform: "", url: "" }],
+//                 questionsAnswers: [{ question: "", answer: "" }],
+//                 // profileImage: null,
+//               })
+//             }
+//             className="w-full p-3 border rounded-lg bg-blue-600 text-white flex items-center justify-center gap-2 mt-3"
+//           >
+//             <PlusCircle className="h-5 w-5" />
+//             Add Author
+//           </button>
+
+//           <button
+//             type="submit"
+//             className="w-full p-3 text-white bg-green-600 rounded-lg"
+//           >
+//             Update
+//           </button>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default UpdateSubcategoryModal;
 import React, { useEffect, useState } from "react";
 import { X, Upload, Trash2, PlusCircle } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -575,11 +968,12 @@ const UpdateSubcategoryModal = ({
     setValue,
     control,
     watch,
+    setError,
   } = useForm({
     defaultValues: {
-      name: initialData.name,
-      description: initialData.description,
-      authors: initialData.authors || [
+      name: "",
+      description: "",
+      authors: [
         {
           name: "",
           role: "",
@@ -590,11 +984,9 @@ const UpdateSubcategoryModal = ({
           questionsAnswers: [{ question: "", answer: "" }],
         },
       ],
-      categoryId: initialData.category?._id || "",
-      softwareIds: initialData.softwares
-        ? initialData.softwares.map((s) => s._id)
-        : [],
-      IsPopCateg: initialData.IsPopCateg,
+      categoryId: "",
+      softwareIds: [],
+      IsPopCateg: false,
       imageUrl: null,
     },
   });
@@ -607,27 +999,28 @@ const UpdateSubcategoryModal = ({
   useEffect(() => {
     if (isOpen) {
       reset({
-        name: initialData.name,
-        description: initialData.description,
-        authors: initialData.authors || [
-          {
-            name: "",
-            role: "",
-            workRole: "",
-            socialLinks: [{ platform: "", url: "" }],
-            title: "",
-            paragraph: "",
-            questionsAnswers: [{ question: "", answer: "" }],
-          },
-        ],
+        name: initialData.name || "",
+        description: initialData.description || "",
+        authors: initialData.authors.length
+          ? initialData.authors
+          : [
+              {
+                name: "",
+                role: "",
+                workRole: "",
+                socialLinks: [{ platform: "", url: "" }],
+                title: "",
+                paragraph: "",
+                questionsAnswers: [{ question: "", answer: "" }],
+              },
+            ],
         categoryId: initialData.category?._id || "",
         softwareIds: initialData.softwares
           ? initialData.softwares.map((s) => s._id)
           : [],
-        IsPopCateg: initialData.IsPopCateg,
+        IsPopCateg: initialData.IsPopCateg || false,
         imageUrl: null,
       });
-
       setPreviewImage(initialData.imageUrl?.url || null);
       loadCategories();
       loadSoftwares();
@@ -657,41 +1050,65 @@ const UpdateSubcategoryModal = ({
     if (file) {
       setValue("imageUrl", file);
       setPreviewImage(URL.createObjectURL(file));
+      console.log("Selected file:", file); // Debug
+    } else {
+      setValue("imageUrl", null);
+      setPreviewImage(initialData.imageUrl?.url || null);
     }
   };
 
   const onSubmitForm = async (data) => {
+    console.log("Form data:", data); // Debug
+    if (!data.name || !data.description || !data.categoryId) {
+      setError("name", { type: "manual", message: "Name is required" });
+      setError("description", {
+        type: "manual",
+        message: "Description is required",
+      });
+      setError("categoryId", {
+        type: "manual",
+        message: "Category is required",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", data.name.trim());
+    formData.append("description", data.description.trim());
+    formData.append("categoryId", data.categoryId);
+    formData.append("softwareIds", JSON.stringify(data.softwareIds));
+    formData.append("IsPopCateg", data.IsPopCateg.toString());
+
+    // Format authors
+    const authorsFormatted = data.authors.map((author) => ({
+      name: author.name || "",
+      role: author.role || "",
+      workRole: author.workRole || "",
+      title: author.title || "",
+      paragraph: author.paragraph || "",
+      socialLinks: author.socialLinks || [{ platform: "", url: "" }],
+      questionsAnswers: author.questionsAnswers || [
+        { question: "", answer: "" },
+      ],
+    }));
+    formData.append("authors", JSON.stringify(authorsFormatted));
+
+    if (data.imageUrl) {
+      formData.append("imageUrl", data.imageUrl);
+    } else if (initialData.imageUrl?.url) {
+      formData.append("existingImageUrl", initialData.imageUrl.url);
+    }
+
+    console.log("FormData fields:", [...formData.entries()]); // Debug
     try {
-      const formData = new FormData();
-      formData.append("name", data.name.trim());
-      formData.append("description", data.description.trim());
-      formData.append("categoryId", data.categoryId);
-      formData.append("softwareIds", JSON.stringify(data.softwareIds));
-      formData.append("IsPopCateg", data.IsPopCateg);
-
-      // Format authors correctly
-      const authorsFormatted = data.authors.map((author) => ({
-        name: author.name,
-        role: author.role,
-        workRole: author.workRole,
-        title: author.title,
-        paragraph: author.paragraph,
-        socialLinks: author.socialLinks || [{ platform: "", url: "" }],
-        questionsAnswers: author.questionsAnswers || [
-          { question: "", answer: "" },
-        ],
-      }));
-
-      formData.append("authors", JSON.stringify(authorsFormatted));
-
-      if (data.imageUrl) {
-        formData.append("imageUrl", data.imageUrl);
-      }
-
-      await onSubmit(formData);
+      await onSubmit(formData, true, initialData?._id);
       handleClose();
     } catch (error) {
-      console.error("Error updating subcategory:", error);
+      console.error("Submission error:", error);
+      setError("imageUrl", {
+        type: "manual",
+        message: error.message || "Failed to update",
+      });
     }
   };
 
@@ -741,70 +1158,90 @@ const UpdateSubcategoryModal = ({
                 />
               </label>
             </div>
+            {errors.imageUrl && (
+              <p className="text-sm text-red-500">{errors.imageUrl.message}</p>
+            )}
           </div>
 
-          {/* Name & Description */}
-          <input
-            {...register("name", { required: true })}
-            placeholder="Name"
-            className="w-full p-3 border rounded-lg"
-          />
-          <textarea
-            {...register("description", { required: true })}
-            placeholder="Description"
-            className="w-full p-3 border rounded-lg"
-          ></textarea>
+          {/* Name */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Name</label>
+            <input
+              {...register("name", { required: "Name is required" })}
+              placeholder="Name"
+              className="w-full p-3 border rounded-lg"
+            />
+            {errors.name && (
+              <p className="text-sm text-red-500">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Description</label>
+            <textarea
+              {...register("description", {
+                required: "Description is required",
+              })}
+              placeholder="Description"
+              className="w-full p-3 border rounded-lg"
+            ></textarea>
+            {errors.description && (
+              <p className="text-sm text-red-500">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
 
           {/* Category Selection */}
-          <label>Category:</label>
-          <select
-            {...register("categoryId")}
-            className="w-full p-3 border rounded-lg"
-          >
-            <option value="">Select category</option>
-            {categories.map((category) => (
-              <option key={category._id} value={category._id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Category</label>
+            <select
+              {...register("categoryId", { required: "Category is required" })}
+              className="w-full p-3 border rounded-lg"
+            >
+              <option value="">Select category</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {errors.categoryId && (
+              <p className="text-sm text-red-500">
+                {errors.categoryId.message}
+              </p>
+            )}
+          </div>
 
           {/* Software Selection */}
-          <label>Software:</label>
-          <div
-            className="border p-3 rounded-lg overflow-y-auto"
-            style={{ maxHeight: "100px" }}
-          >
-            {softwares.map((software) => (
-              <div key={software._id} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value={software._id}
-                  {...register("softwareIds")}
-                  className="form-checkbox"
-                />
-                <label>{software.name}</label>
-              </div>
-            ))}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Software</label>
+            <div
+              className="border p-3 rounded-lg overflow-y-auto"
+              style={{ maxHeight: "100px" }}
+            >
+              {softwares.map((software) => (
+                <div key={software._id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    value={software._id}
+                    {...register("softwareIds")}
+                    className="form-checkbox"
+                  />
+                  <label>{software.name}</label>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Authors Section */}
           <label className="block text-lg font-semibold">Authors</label>
-
           {fields.map((field, index) => (
             <div
               key={field.id}
               className="border p-4 rounded-lg bg-gray-100 mb-4"
             >
-              {/* Author Profile Image Upload */}
-              {/* <label className="block text-sm font-medium">Profile Image</label>
-              <input
-                type="file"
-                {...register(`authors.${index}.profileImage`)}
-                className="w-full p-2 border rounded-lg"
-              /> */}
-
-              {/* Author Name */}
               <label className="block text-sm font-medium">Name</label>
               <input
                 {...register(`authors.${index}.name`)}
@@ -812,7 +1249,6 @@ const UpdateSubcategoryModal = ({
                 className="w-full p-2 border rounded-lg mb-2"
               />
 
-              {/* Author Role */}
               <label className="block text-sm font-medium">Role</label>
               <input
                 {...register(`authors.${index}.role`)}
@@ -820,7 +1256,6 @@ const UpdateSubcategoryModal = ({
                 className="w-full p-2 border rounded-lg mb-2"
               />
 
-              {/* Author Work Role */}
               <label className="block text-sm font-medium">Work Role</label>
               <input
                 {...register(`authors.${index}.workRole`)}
@@ -828,7 +1263,6 @@ const UpdateSubcategoryModal = ({
                 className="w-full p-2 border rounded-lg mb-2"
               />
 
-              {/* Author Title */}
               <label className="block text-sm font-medium">Title</label>
               <input
                 {...register(`authors.${index}.title`)}
@@ -836,7 +1270,6 @@ const UpdateSubcategoryModal = ({
                 className="w-full p-2 border rounded-lg mb-2"
               />
 
-              {/* Author Paragraph */}
               <label className="block text-sm font-medium">Paragraph</label>
               <textarea
                 {...register(`authors.${index}.paragraph`)}
@@ -845,7 +1278,6 @@ const UpdateSubcategoryModal = ({
                 rows="3"
               />
 
-              {/* Social Links */}
               <label className="block text-sm font-medium">Social Links</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -859,7 +1291,6 @@ const UpdateSubcategoryModal = ({
                   className="p-2 border rounded-lg"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <input
                   {...register(`authors.${index}.socialLinks.1.platform`)}
@@ -873,7 +1304,6 @@ const UpdateSubcategoryModal = ({
                 />
               </div>
 
-              {/* Questions & Answers */}
               <label className="block text-sm font-medium mt-2">
                 Questions & Answers
               </label>
@@ -889,7 +1319,6 @@ const UpdateSubcategoryModal = ({
                   className="p-2 border rounded-lg"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <input
                   {...register(`authors.${index}.questionsAnswers.1.question`)}
@@ -903,7 +1332,6 @@ const UpdateSubcategoryModal = ({
                 />
               </div>
 
-              {/* Remove Author Button */}
               <button
                 type="button"
                 onClick={() => remove(index)}
@@ -915,7 +1343,6 @@ const UpdateSubcategoryModal = ({
             </div>
           ))}
 
-          {/* Add New Author Button */}
           <button
             type="button"
             onClick={() =>
@@ -927,7 +1354,6 @@ const UpdateSubcategoryModal = ({
                 paragraph: "",
                 socialLinks: [{ platform: "", url: "" }],
                 questionsAnswers: [{ question: "", answer: "" }],
-                // profileImage: null,
               })
             }
             className="w-full p-3 border rounded-lg bg-blue-600 text-white flex items-center justify-center gap-2 mt-3"
@@ -938,9 +1364,10 @@ const UpdateSubcategoryModal = ({
 
           <button
             type="submit"
-            className="w-full p-3 text-white bg-green-600 rounded-lg"
+            disabled={isSubmitting}
+            className="w-full p-3 text-white bg-green-600 rounded-lg disabled:opacity-50"
           >
-            Update
+            {isSubmitting ? "Updating..." : "Update"}
           </button>
         </form>
       </div>

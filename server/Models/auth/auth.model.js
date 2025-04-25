@@ -38,9 +38,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  // profileImage: {
+  //   type: String,
+  //   default: null,
+  // },
   profileImage: {
-    type: String,
-    default: null,
+    public_id: { type: String },
+    url: { type: String },
   },
   isAdmin: {
     type: Boolean,
@@ -58,6 +62,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+
   createdAt: {
     type: Date,
     default: Date.now,

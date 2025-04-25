@@ -5,22 +5,24 @@ import cookieParser from "cookie-parser";
 import connectDB from "./Config/dbConfig.js";
 import router from "./Routes/indexRoutes.js";
 import cors from "cors";
-import path from "path";
-import cloudinary from "cloudinary";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
+import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     methods: ["POST", "GET", "PUT", "DELETE", "PATCH"],
     allowedHeaders: [
       "Content-Type",
@@ -32,36 +34,18 @@ app.use(
     credentials: true,
   })
 );
-
 app.use(cookieParser());
 
-app.use("/uploads", express.static(path.join(__dirname, "Uploads")));
-
-// Connect to MongoDB and initialize admin
-const startServer = async () => {
-  try {
-    await connectDB();
-  } catch (error) {
-    console.error("Startup error:", error.message);
-    process.exit(1);
-  }
-};
-startServer();
-
+// Routes
 app.use(router);
 
-const port = process.env.PORT || 5000;
-
+// Root route
 app.get("/", (req, res) => {
-  res.send(`I am running on ${port}`);
+  const port = process.env.PORT || 5000;
+  res.send(`I am running on port ${port}`);
 });
 
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
+// Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Server Error";
@@ -72,6 +56,19 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on ${port}`);
-});
+// Connect to MongoDB and start server
+const startServer = async () => {
+  try {
+    await connectDB();
+    const port = process.env.PORT || 5000;
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } catch (error) {
+    console.error("Startup error:", error.message);
+    process.exit(1);
+  }
+};
+startServer();
+
+export default app;

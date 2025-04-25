@@ -45,6 +45,10 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
   ] = useFirebaseSignInMutation();
   const [resendVerification, { isLoading: isResending }] =
     useResendVerificationMutation();
+  const [loadingState, setLoadingState] = useState({
+    google: false,
+    facebook: false,
+  });
 
   const { data: authData, isLoading: isVerifying } = useVerifyTokenQuery(
     undefined,
@@ -79,21 +83,8 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
 
   if (!isOpen || isVerifying) return null;
 
-  const handleResendEmail = async () => {
-    if (!userData?.user?.email) {
-      toast.error("User email not found.");
-      return;
-    }
-
-    try {
-      await resendVerification({ email: userData.user.email }).unwrap();
-      toast.success("Verification email resent!");
-    } catch (error) {
-      toast.error(error?.data?.message || "Failed to resend email.");
-    }
-  };
-
   const handleGoogleSignIn = async () => {
+    setLoadingState((prev) => ({ ...prev, google: true }));
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
@@ -107,10 +98,13 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
     } catch (error) {
       console.error("Google Sign-In Error:", error);
       toast.error(error?.data?.message || "Google Sign-In Failed");
+    } finally {
+      setLoadingState((prev) => ({ ...prev, google: false }));
     }
   };
 
   const handleFacebookSignIn = async () => {
+    setLoadingState((prev) => ({ ...prev, facebook: true }));
     try {
       const result = await signInWithPopup(auth, facebookProvider);
       const idToken = await result.user.getIdToken();
@@ -122,8 +116,42 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
     } catch (error) {
       console.error("Facebook Sign-In Error:", error);
       toast.error("Facebook login failed!");
+    } finally {
+      setLoadingState((prev) => ({ ...prev, facebook: false }));
     }
   };
+
+  // const handleGoogleSignIn = async () => {
+  //   try {
+  //     const result = await signInWithPopup(auth, googleProvider);
+  //     const user = result.user;
+  //     const idToken = await user.getIdToken();
+
+  //     const response = await firebaseSignIn({ idToken }).unwrap();
+  //     toast.success(`Welcome, ${user.displayName || user.email}!`);
+  //     setIsOpen(false);
+  //     dispatch(resetForms());
+  //     navigate(response.redirectUrl || "/user-dashboard");
+  //   } catch (error) {
+  //     console.error("Google Sign-In Error:", error);
+  //     toast.error(error?.data?.message || "Google Sign-In Failed");
+  //   }
+  // };
+
+  // const handleFacebookSignIn = async () => {
+  //   try {
+  //     const result = await signInWithPopup(auth, facebookProvider);
+  //     const idToken = await result.user.getIdToken();
+  //     const response = await firebaseSignIn({ idToken }).unwrap();
+  //     toast.success("Login successful!");
+  //     setIsOpen(false);
+  //     dispatch(resetForms());
+  //     navigate(response.redirectUrl || "/user-dashboard");
+  //   } catch (error) {
+  //     console.error("Facebook Sign-In Error:", error);
+  //     toast.error("Facebook login failed!");
+  //   }
+  // };
 
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
@@ -183,7 +211,7 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
         </div>
         <button
           onClick={handleGoogleSignIn}
-          disabled={isGoogleSigningIn}
+          disabled={loadingState.google}
           className="w-full border border-gray-300 text-gray-700 rounded-lg py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors text-sm sm:text-base"
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24">
@@ -204,11 +232,12 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          {isGoogleSigningIn ? "Signing In..." : "Continue with Google"}
+          {loadingState.google ? "Signing In..." : "Continue with Google"}
         </button>
+
         <button
           onClick={handleFacebookSignIn}
-          disabled={isGoogleSigningIn}
+          disabled={loadingState.facebook}
           className="w-full border border-gray-300 text-gray-700 rounded-lg py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors text-sm sm:text-base"
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24">
@@ -217,7 +246,7 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
               d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103v3.33h-2.031c-1.192 0-1.614.645-1.614 2.19v1.936h3.643l-.743 3.666H12.77v7.98H9.101z"
             />
           </svg>
-          {isGoogleSigningIn ? "Signing In..." : "Continue with Facebook"}
+          {loadingState.facebook ? "Signing In..." : "Continue with Facebook"}
         </button>
         <button
           onClick={() => dispatch(setView("signin"))}
