@@ -18,6 +18,7 @@ import {
   useFetchUserDataQuery,
   useResendVerificationMutation,
   useFirebaseSignInMutation,
+  authApi,
 } from "../../../store/api/auth/auth";
 import { toast } from "react-toastify";
 
@@ -94,7 +95,7 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
       toast.success(`Welcome, ${user.displayName || user.email}!`);
       setIsOpen(false);
       dispatch(resetForms());
-      navigate(response.redirectUrl || "/user-dashboard");
+      dispatch(authApi.util.resetApiState()); // Clear RTK Query cache
     } catch (error) {
       console.error("Google Sign-In Error:", error);
       toast.error(error?.data?.message || "Google Sign-In Failed");
@@ -112,7 +113,7 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
       toast.success("Login successful!");
       setIsOpen(false);
       dispatch(resetForms());
-      navigate(response.redirectUrl || "/user-dashboard");
+      dispatch(authApi.util.resetApiState()); // Clear RTK Query cache
     } catch (error) {
       console.error("Facebook Sign-In Error:", error);
       toast.error("Facebook login failed!");
@@ -174,7 +175,7 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
       toast.success(response.message || "SignIn Success");
       setIsOpen(false);
       dispatch(resetForms());
-      navigate(response.redirectUrl || "/user-dashboard");
+      dispatch(authApi.util.resetApiState()); // Clear RTK Query cache
     } catch (error) {
       toast.error(error?.data?.message || "SignIn Error");
     }

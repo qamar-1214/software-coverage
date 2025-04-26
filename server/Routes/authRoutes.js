@@ -11,7 +11,7 @@ import {
   resendVerification,
   firebaseSignIn,
 } from "../Controllers/auth/authController.js";
-import { createUploadMiddleware } from "../Middlewares/multer.js";
+import { createUploadMiddleware } from "../middlewares/multer.js";
 
 const authRouter = express.Router();
 

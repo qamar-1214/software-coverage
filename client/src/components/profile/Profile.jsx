@@ -1,5 +1,5 @@
-// components/Profile.jsx
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Info } from "lucide-react";
 import { toast } from "react-toastify";
 import {
@@ -10,12 +10,37 @@ import {
 import Sidebar from "../sidebars/Sidebar";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const { data: userData, isLoading: isUserLoading } = useFetchUserDataQuery();
   const [resendVerification, { isLoading: isResending }] =
     useResendVerificationMutation();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    localStorage.getItem("sidebarCollapsed") === "true"
+  );
 
   const user = userData?.user;
+
+  // Listen for sidebar collapse changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsSidebarCollapsed(
+        localStorage.getItem("sidebarCollapsed") === "true"
+      );
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    const interval = setInterval(() => {
+      setIsSidebarCollapsed(
+        localStorage.getItem("sidebarCollapsed") === "true"
+      );
+    }, 100);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleResendEmail = async () => {
     if (!user?.email) {
@@ -39,7 +64,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="flex  min-h-screen h-full bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar only if user is verified */}
       {user?.isEmailVerified && (
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -47,8 +72,12 @@ const Profile = () => {
 
       {/* Main Content */}
       {user?.isEmailVerified ? (
-        <div className="flex-1 flex justify-center items-center p-6">
-          <div className="max-w-2xl w-full">
+        <div
+          className={`flex-1 p-6 ${
+            isSidebarCollapsed ? "pl-20 sm:pl-24" : "pl-80"
+          }`}
+        >
+          <div className="w-full px-4">
             <ProfileUpdateForm />
           </div>
         </div>
@@ -57,24 +86,24 @@ const Profile = () => {
         <div className="flex-1 flex flex-col justify-between bg-white min-h-screen">
           {/* Center Box */}
           <div className="flex-1 flex items-center justify-center px-4">
-            <div className="bg-white shadow-lg rounded-xl p-8 max-w-5xl w-full text-center">
-              <h2 className="text-7xl font-bold mb-4">No Access</h2>
-              <p className="text-gray-900 text-4xl mb-8">
+            <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-5xl text-center">
+              <h2 className="text-4xl sm:text-5xl font-bold mb-4">No Access</h2>
+              <p className="text-gray-900 text-lg sm:text-xl mb-8">
                 Currently you do not have access to this page.
               </p>
-              <p className="text-gray-900 text-4xl mb-6">
+              <p className="text-gray-900 text-lg sm:text-xl mb-6">
                 Follow the next steps to gain access:
               </p>
               <ol className="list-decimal list-inside text-center text-gray-700 space-y-2 mb-6">
-                <li className="text-xl mb-2">
+                <li className="text-base sm:text-lg mb-2">
                   <strong>
                     Confirm your e-mail address <br />
-                  </strong>{" "}
+                  </strong>
                   (if you have not done this already).
                   <br />
                   This is required to have access to your Profile page.
                 </li>
-                <li className="text-xl mb-2">
+                <li className="text-base sm:text-lg mb-2">
                   <strong>Please fill out your profile form.</strong>
                   <br />
                   This step is required for access to Claiming your Software or
@@ -130,6 +159,16 @@ const ProfileUpdateForm = () => {
     companyName: "",
     companyPosition: "",
   });
+
+  useEffect(() => {
+    if (userData?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        displayName: userData.user.displayName || "",
+        email: userData.user.email || "",
+      }));
+    }
+  }, [userData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -218,9 +257,9 @@ const ProfileUpdateForm = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto p-4">
+    <div className="w-full px-4 max-w-5xl mx-auto mt-10">
       {/* Profile Image Section */}
-      <div className="flex justify-center mb-6 relative">
+      <div className="flex justify-center mb-4">
         <div className="group relative w-24 h-24 rounded-full bg-gray-200 overflow-hidden border border-gray-300">
           {formData.profileImage ? (
             <img
@@ -247,76 +286,76 @@ const ProfileUpdateForm = () => {
         </div>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {/* Personal Info */}
-        <div>
-          <h3 className="text-3xl  font-bold mb-4 ml-5">Personal Info</h3>
-          {fields.map(({ label, name, placeholder, type = "text", info }) => (
-            <div key={name} className="mb-4 w-[250px]">
-              <label className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                {label}
-                <div className="group relative cursor-pointer">
-                  <Info className="w-4 h-4 text-gray-500 group-hover:text-black transition duration-200" />
-                  {info && (
+      <form onSubmit={handleSubmit} className="">
+        <div className="flex flex-col sm:flex-row gap-6 sm:gap-44  justify-center">
+          {/* Personal Info */}
+          <div>
+            <h3 className="text-2xl font-bold mb-4">Personal Info</h3>
+            {fields.map(({ label, name, placeholder, type = "text", info }) => (
+              <div key={name} className="mb-4">
+                <label className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                  {label}
+                  <div className="group relative cursor-pointer">
+                    <Info className="w-4 h-4 text-gray-500 group-hover:text-black transition duration-200" />
+                    {info && (
+                      <span className="absolute z-10 hidden group-hover:block w-40 text-xs bg-gray-700 text-white rounded p-2 -top-10 left-6">
+                        {info}
+                      </span>
+                    )}
+                  </div>
+                </label>
+                <input
+                  type={type}
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleInputChange}
+                  placeholder={placeholder}
+                  className="w-full px-2 py-[6px] rounded-md border border-transparent focus:border-black bg-transparent focus:outline-none text-sm placeholder-gray-400"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Business Info */}
+          <div>
+            <h3 className="text-2xl font-bold mb-4">Business Info</h3>
+            {businessFields.map(({ label, name, placeholder, info }) => (
+              <div key={name} className="mb-4">
+                <label className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                  {label}
+                  <div className="group relative cursor-pointer">
+                    <Info className="w-4 h-4 text-gray-500 group-hover:text-black transition duration-200" />
                     <span className="absolute z-10 hidden group-hover:block w-40 text-xs bg-gray-700 text-white rounded p-2 -top-10 left-6">
                       {info}
                     </span>
-                  )}
-                </div>
-              </label>
-              <input
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                placeholder={placeholder}
-                className="w-full px-2 py-[6px] rounded-md border border-transparent focus:border-black bg-transparent focus:outline-none text-sm placeholder-gray-400"
-              />
-            </div>
-          ))}
+                  </div>
+                </label>
+                <input
+                  type="text"
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleInputChange}
+                  placeholder={placeholder}
+                  className="w-full px-2 py-[6px] rounded-md border border-transparent focus:border-black bg-transparent focus:outline-none text-sm placeholder-gray-400"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Business Info */}
-        <div>
-          <h3 className="text-3xl  font-bold mb-4 ml-5">Business Info</h3>
-          {businessFields.map(({ label, name, placeholder, info }) => (
-            <div key={name} className="mb-4 w-[250px]">
-              <label className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                {label}
-                <div className="group relative cursor-pointer">
-                  <Info className="w-4 h-4 text-gray-500 group-hover:text-black transition duration-200" />
-                  <span className="absolute z-10 hidden group-hover:block w-40 text-xs bg-gray-700 text-white rounded p-2 -top-10 left-6">
-                    {info}
-                  </span>
-                </div>
-              </label>
-              <input
-                type="text"
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                placeholder={placeholder}
-                className="w-full px-2 py-[6px] rounded-md border border-transparent focus:border-black bg-transparent focus:outline-none text-sm placeholder-gray-400"
-              />
-            </div>
-          ))}
-        </div>
-      </form>
-      <div className="min-w-full bg-white w-[100%] px-5 py-4 flex items-center justify-center">
-        <div className="text-center  ">
+        {/* Submit Button */}
+        <div className="sm:col-span-2 bg-white p-3 flex justify-center mt-6">
           <button
             type="submit"
             disabled={isUpdating}
-            onClick={handleSubmit}
-            className="px-4 py-2.5 navbarBtnEndWithGradient"
+            className={`px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg hover:from-blue-700 hover:to-blue-900 transition-colors ${
+              isUpdating ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             {isUpdating ? "Updating..." : "Edit Profile"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

@@ -12,7 +12,7 @@ import {
   getAllSubCategoriesAdmin,
   getSubCategoryBySlug,
 } from "../Controllers/subCategoryController.js";
-import { createUploadMiddleware } from "../Middlewares/multer.js";
+import { createUploadMiddleware } from "../middlewares/multer.js";
 
 const subCategoryRouter = express.Router();
 

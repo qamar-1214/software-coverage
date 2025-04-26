@@ -8,7 +8,7 @@ import {
   updateSoftware,
   getAllSoftwaresAdmin,
 } from "../Controllers/softwareController.js";
-import { createUploadMiddleware } from "../Middlewares/multer.js";
+import { createUploadMiddleware } from "../middlewares/multer.js";
 
 const softwareRouter = express.Router();
 

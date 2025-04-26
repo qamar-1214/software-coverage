@@ -29,7 +29,10 @@ import AdminLoginModal from "../modals/navbar_modal/AdminLoginModal";
 import VerifyEmail from "../user_dashboard/VerifyEmail";
 import UserDashboard from "../user_dashboard/UserDashboard";
 import Profile from "../profile/Profile";
-import Reviews from "../reviews/Reviews";
+import EditReview from "../review/EditReview";
+import WriteReview from "../review/WriteReview";
+import MyReviews from "../review/MyReviews";
+import Coupons from "../coupons/Coupons";
 
 // Fixed AdminLoginWrapper
 const AdminLoginWrapper = () => {
@@ -121,8 +124,20 @@ const router = createBrowserRouter([
         element: <Profile />,
       },
       {
-        path: "/reviews",
-        element: <Reviews />,
+        path: "/edit-review/:id",
+        element: <EditReview />,
+      },
+      {
+        path: "/write-review",
+        element: <WriteReview />,
+      },
+      {
+        path: "/my-reviews",
+        element: <MyReviews />,
+      },
+      {
+        path: "/coupons",
+        element: <Coupons />,
       },
     ],
   },

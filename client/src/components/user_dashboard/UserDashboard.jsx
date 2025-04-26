@@ -1,20 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import {
   useFetchUserDataQuery,
   useResendVerificationMutation,
 } from "../../store/api/auth/auth";
 import Sidebar from "../sidebars/Sidebar";
-import { use } from "react";
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { data: userData, isLoading: isUserLoading } = useFetchUserDataQuery();
   const [resendVerification, { isLoading: isResending }] =
     useResendVerificationMutation();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    localStorage.getItem("sidebarCollapsed") === "true"
+  );
 
   const user = userData?.user;
   const emailDisplay = user?.email?.split("@")[0];
+
+  // Listen for sidebar collapse changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsSidebarCollapsed(
+        localStorage.getItem("sidebarCollapsed") === "true"
+      );
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    const interval = setInterval(() => {
+      setIsSidebarCollapsed(
+        localStorage.getItem("sidebarCollapsed") === "true"
+      );
+    }, 100);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleResendEmail = async () => {
     if (!user?.email) {
@@ -36,15 +59,19 @@ const UserDashboard = () => {
       </div>
     );
   }
-  console.log("isem", user?.isEmailVerified);
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Main Content */}
-      <div className="flex-1 flex justify-center items-start mt-10 p-6">
-        <div className="max-w-2xl w-full">
+      <div
+        className={`flex-1 flex justify-center items-start mt-10 p-6 ${
+          isSidebarCollapsed ? "pl-20 sm:pl-24" : "pl-80"
+        }`}
+      >
+        <div className="w-full px-4 max-w-5xl mx-auto">
           {activeTab === "dashboard" && (
             <div className="flex flex-col ">
               <h2 className="text-2xl font-bold mb-6 text-center">Dashboard</h2>
@@ -96,14 +123,6 @@ const UserDashboard = () => {
                   </button>
                 </div>
               )}
-            </div>
-          )}
-          {activeTab === "coupons" && (
-            <div>
-              <h2 className="text-2xl font-bold mb-4 text-center">Coupons</h2>
-              <p className="text-gray-700 text-center">
-                Your coupons will be displayed here.
-              </p>
             </div>
           )}
         </div>

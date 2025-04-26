@@ -335,7 +335,6 @@ const updateProfile = async (req, res) => {
               })
           : Promise.resolve(null),
       ]);
-      console.timeEnd("cloudinaryOperations");
 
       updateData.profileImage = {
         public_id: cloudinaryResponse.public_id,
@@ -385,15 +384,12 @@ const updateProfile = async (req, res) => {
     }
 
     // Update user
-    console.time("updateUser");
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true, runValidators: true }
     ).lean();
-    console.timeEnd("updateUser");
-
-    console.timeEnd("updateProfile");
 
     res.status(200).json({
       success: true,

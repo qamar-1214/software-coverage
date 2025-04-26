@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Menu,
-  X,
   LogOut,
   UserRound,
   LayoutDashboard,
@@ -18,10 +15,12 @@ import {
   useLogoutMutation,
   authApi,
 } from "../../store/api/auth/auth";
+import { useDispatch } from "react-redux";
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: userData, isLoading: isUserLoading } = useFetchUserDataQuery();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -46,6 +45,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     };
 
     window.addEventListener("resize", handleResize);
+    handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -61,83 +61,70 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   };
 
   if (isUserLoading) {
-    return null; // Avoid rendering sidebar until user data is loaded
+    return null;
   }
 
   return (
     <div
-      className={`bg-blue-800 text-white transition-all duration-300 shadow-lg flex flex-col ${
+      className={`bg-blue-800 text-white transition-all duration-300 shadow-lg flex flex-col fixed top-0 left-0 h-screen ${
         isSidebarCollapsed ? "w-16" : "w-72"
-      }`}
+      } z-10`}
     >
-      {/* Logo (only when expanded) */}
-      {/* Logo (only when expanded) */}
       {!isSidebarCollapsed && (
-        <div className="flex items-center justify-start py-4  border-blue-700 px-4">
+        <div className="flex items-center justify-start py-4 border-blue-700 px-4">
           <img
-            src="SoftwareCoverage.webp" // replace with actual path
+            src="/SoftwareCoverage.webp"
             alt="Logo"
             className="w-52 h-auto"
+            onError={(e) => (e.target.src = "https://via.placeholder.com/100")}
           />
         </div>
       )}
       <nav className="flex-1 pt-4">
         <ul className="space-y-2">
           <li className="px-2">
-            <button
-              onClick={() => {
-                setActiveTab("dashboard");
-                navigate("/user-dashboard");
-              }}
+            <Link
+              to="/user-dashboard"
               className={`w-full flex items-center gap-3 py-3 rounded-lg transition-colors duration-200 ${
-                activeTab === "dashboard"
+                location.pathname === "/user-dashboard"
                   ? "bg-blue-700 text-white"
                   : "text-gray-200 hover:bg-blue-700/50"
               } ${isSidebarCollapsed ? "justify-center" : "px-4"}`}
             >
               <LayoutDashboard size={20} />
               {!isSidebarCollapsed && <span>Dashboard</span>}
-            </button>
+            </Link>
           </li>
-
           <li className="px-2">
-            <button
-              onClick={() => {
-                setActiveTab("coupons");
-                navigate("/user-dashboard");
-              }}
+            <Link
+              to="/coupons"
               className={`w-full flex items-center gap-3 py-3 rounded-lg transition-colors duration-200 ${
-                activeTab === "coupons"
+                location.pathname === "/coupons"
                   ? "bg-blue-700 text-white"
                   : "text-gray-200 hover:bg-blue-700/50"
               } ${isSidebarCollapsed ? "justify-center" : "px-4"}`}
             >
               <Scissors size={20} />
               {!isSidebarCollapsed && <span>Coupons</span>}
-            </button>
+            </Link>
           </li>
-
           {user?.isEmailVerified && (
             <li className="px-2">
-              <button
-                onClick={() => {
-                  setActiveTab("reviews");
-                  navigate("/reviews");
-                }}
+              <Link
+                to="/my-reviews"
                 className={`w-full flex items-center gap-3 py-3 rounded-lg transition-colors duration-200 ${
-                  activeTab === "reviews"
+                  location.pathname === "/my-reviews"
                     ? "bg-blue-700 text-white"
                     : "text-gray-200 hover:bg-blue-700/50"
                 } ${isSidebarCollapsed ? "justify-center" : "px-4"}`}
               >
                 <MessageSquareMore size={20} />
                 {!isSidebarCollapsed && <span>Reviews</span>}
-              </button>
+              </Link>
             </li>
           )}
         </ul>
       </nav>
-
       <div className="p-4 border-t border-blue-700">
         <div
           className={`flex items-center gap-3 ${
@@ -148,10 +135,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             className={`min-w-[40px] h-10 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer ${
               isSidebarCollapsed ? "w-10" : "w-10"
             }`}
-            onClick={() => {
-              setActiveTab("profile");
-              navigate("/profile");
-            }}
+            onClick={() => navigate("/profile")}
           >
             {user?.profileImage ? (
               <img
@@ -172,7 +156,6 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
               </p>
             </div>
           )}
-
           {!isSidebarCollapsed && (
             <button
               onClick={handleLogout}
@@ -183,7 +166,6 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             </button>
           )}
         </div>
-
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           className={`mt-3 flex items-center gap-3 py-3 rounded-lg transition-colors duration-200 text-gray-200 hover:bg-blue-700/50 ${
