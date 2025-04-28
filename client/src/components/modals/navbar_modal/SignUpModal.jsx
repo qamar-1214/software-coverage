@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FacebookAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  FacebookAuthProvider,
+  fetchSignInMethodsForEmail,
+  GoogleAuthProvider,
+  linkWithCredential,
+  signInWithPopup,
+} from "firebase/auth";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { auth, googleProvider, facebookProvider } from "../../../firebase";
@@ -103,56 +109,71 @@ const SignUpModal = ({ isOpen, setIsOpen }) => {
       setLoadingState((prev) => ({ ...prev, google: false }));
     }
   };
-
   const handleFacebookSignIn = async () => {
     setLoadingState((prev) => ({ ...prev, facebook: true }));
+
     try {
       const result = await signInWithPopup(auth, facebookProvider);
       const idToken = await result.user.getIdToken();
       const response = await firebaseSignIn({ idToken }).unwrap();
+
       toast.success("Login successful!");
       setIsOpen(false);
       dispatch(resetForms());
-      dispatch(authApi.util.resetApiState()); // Clear RTK Query cache
+      dispatch(authApi.util.resetApiState());
     } catch (error) {
       console.error("Facebook Sign-In Error:", error);
-      toast.error("Facebook login failed!");
+
+      if (error.code === "auth/account-exists-with-different-credential") {
+        const email = error.customData?.email;
+        const pendingCred = FacebookAuthProvider.credentialFromError(error);
+
+        if (email) {
+          const methods = await fetchSignInMethodsForEmail(auth, email);
+          console.log("methods", methods);
+
+          if (methods.includes("google.com")) {
+            // Ask user to login with Google
+            toast.info(
+              "Please login with Google to link your Facebook account."
+            );
+
+            const googleProvider = new GoogleAuthProvider();
+            const googleResult = await signInWithPopup(auth, googleProvider);
+
+            // Link the pending Facebook credentials to the Google account
+            await linkWithCredential(googleResult.user, pendingCred);
+
+            const idToken = await googleResult.user.getIdToken();
+            const response = await firebaseSignIn({ idToken }).unwrap();
+
+            toast.success("Accounts linked successfully!");
+            setIsOpen(false);
+            dispatch(resetForms());
+            dispatch(authApi.util.resetApiState());
+          } else if (methods.includes("password")) {
+            toast.error(
+              "This email is registered with Email/Password. Please login with your email credentials."
+            );
+          } else {
+            toast.error(
+              "This email is registered with a different sign-in method. Please try another way."
+            );
+          }
+        } else {
+          toast.error(
+            "Email already exists with another provider. Please try signing in using a different method."
+          );
+        }
+      } else {
+        toast.error(
+          error.message || "Facebook login failed. Please try again!"
+        );
+      }
     } finally {
       setLoadingState((prev) => ({ ...prev, facebook: false }));
     }
   };
-
-  // const handleGoogleSignIn = async () => {
-  //   try {
-  //     const result = await signInWithPopup(auth, googleProvider);
-  //     const user = result.user;
-  //     const idToken = await user.getIdToken();
-
-  //     const response = await firebaseSignIn({ idToken }).unwrap();
-  //     toast.success(`Welcome, ${user.displayName || user.email}!`);
-  //     setIsOpen(false);
-  //     dispatch(resetForms());
-  //     navigate(response.redirectUrl || "/user-dashboard");
-  //   } catch (error) {
-  //     console.error("Google Sign-In Error:", error);
-  //     toast.error(error?.data?.message || "Google Sign-In Failed");
-  //   }
-  // };
-
-  // const handleFacebookSignIn = async () => {
-  //   try {
-  //     const result = await signInWithPopup(auth, facebookProvider);
-  //     const idToken = await result.user.getIdToken();
-  //     const response = await firebaseSignIn({ idToken }).unwrap();
-  //     toast.success("Login successful!");
-  //     setIsOpen(false);
-  //     dispatch(resetForms());
-  //     navigate(response.redirectUrl || "/user-dashboard");
-  //   } catch (error) {
-  //     console.error("Facebook Sign-In Error:", error);
-  //     toast.error("Facebook login failed!");
-  //   }
-  // };
 
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
